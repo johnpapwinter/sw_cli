@@ -6,7 +6,7 @@ import requests
 from cache import Cache
 
 
-class StarWarsCLI:
+class StarWarsAPIService:
     BASE_URL = "https://swapi.dev/api/people/?search="
 
     def __init__(self, cache_file: str):
