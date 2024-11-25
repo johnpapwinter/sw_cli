@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from typing import Optional, Dict, List
 
@@ -13,23 +14,39 @@ class StarWarsAPIService:
         self.cache = Cache(cache_file)
 
     def get_homeworld(self, url: str) -> Optional[Dict]:
-        response = requests.get(url)
-        if response.status_code == 200:
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
             return response.json()
-        return None
+        except requests.RequestException as e:
+            print(f"Error: Could not fetch homeworld data. {str(e)}")
+            return None
+        except json.JSONDecodeError:
+            print("Error: Received invalid homeworld data from the Star Wars API")
+            return None
 
     def search_api(self, name: str) -> List[Dict]:
-        response = requests.get(f"{self.BASE_URL}{name}")
-        if response.status_code == 200:
+        try:
+            response = requests.get(f"{self.BASE_URL}{name}")
+            response.raise_for_status()  # Raises an exception for 4XX/5XX status codes
             data = response.json()
             if data['results']:
                 characters = []
                 for character in data['results']:
-                    character['homeworld'] = self.get_homeworld(character['homeworld'])
-                    character['timestamp'] = datetime.now().isoformat()
-                    characters.append(character)
+                    try:
+                        character['homeworld'] = self.get_homeworld(character['homeworld'])
+                        character['timestamp'] = datetime.now().isoformat()
+                        characters.append(character)
+                    except requests.RequestException:
+                        print(f"Warning: Could not fetch homeworld data for {character['name']}")
                 return characters
-        return []
+            return []
+        except requests.RequestException as e:
+            print(f"Error: Could not complete the search request. {str(e)}")
+            return []
+        except json.JSONDecodeError:
+            print("Error: Received invalid data from the Star Wars API")
+            return []
 
     def search(self, query: str) -> List[Dict]:
         # Try cache first
