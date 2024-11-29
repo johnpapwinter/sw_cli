@@ -23,7 +23,7 @@ A command-line interface tool for searching Star Wars characters using the [SWAP
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/johnpapwinter/sw_cli.git
 cd star-wars-cli
 ```
 
